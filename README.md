@@ -16,6 +16,8 @@ This script uses the following 8 documents, which were located in my computer wh
     * y_train.txt - Provided Activities for each observation
     * X_train.txt - Provided the actual measurements
 
+Here is a link to the same data: https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip
+
 The script itself reads the 6 data files into R, merges the columns for Test/Train documents, and then combines the data for both the Test and Train into one dataframe. It also changes the Subject and Activity into Factor variables.
 
 After the data is cleaned up, we select out just the mean/SD columns, and apply `group_by` and `summarize_all` to provide the necessary average data for each subject and activity.
