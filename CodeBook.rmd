@@ -1,0 +1,129 @@
+# Review criteria
+
+The submitted data set is tidy. 
+
+The Github repo contains the required scripts.
+
+GitHub contains a code book that modifies and updates the available codebooks with the data to indicate all the variables and summaries calculated, along with units, and any other relevant information.
+
+The README that explains the analysis files is clear and understandable.
+
+The work submitted for this project is the work of the student who submitted it.
+
+# Getting and Cleaning Data Course Project
+ 
+The purpose of this project is to demonstrate your ability to collect, work with, and clean a data set. The goal is to prepare tidy data that can be used for later analysis. You will be graded by your peers on a series of yes/no questions related to the project. You will be required to submit: 1) a tidy data set as described below, 2) a link to a Github repository with your script for performing the analysis, and 3) a code book that describes the variables, the data, and any transformations or work that you performed to clean up the data called CodeBook.md. You should also include a README.md in the repo with your scripts. This repo explains how all of the scripts work and how they are connected.
+
+One of the most exciting areas in all of data science right now is wearable computing - see for example this article . Companies like Fitbit, Nike, and Jawbone Up are racing to develop the most advanced algorithms to attract new users. The data linked to from the course website represent data collected from the accelerometers from the Samsung Galaxy S smartphone. A full description is available at the site where the data was obtained:
+
+http://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+Using+Smartphones 
+
+Here are the data for the project:
+
+ https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip  
+
+You should create one R script called run_analysis.R that does the following:
+
+1. Merges the training and the test sets to create one data set.
+
+2. Extracts only the measurements on the mean and standard deviation for each measurement. 
+
+3. Uses descriptive activity names to name the activities in the data set
+
+4. Appropriately labels the data set with descriptive variable names. 
+
+5. From the data set in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject.
+
+Good luck!
+
+# Final Project and Explanations
+
+The full script can be found in `run_analysis.R`. Here is a section by section breakdown:
+
+## Initializing Variables
+
+```{r s1}
+location <- "C:/Users/jaden/source/repos/Programming Notes - Data Languages/R Guide/Programming Assignments JH/Programming Assignment 4 - C2W4 Project/"
+columnNames <- read.table(paste0(location, "features.txt"))
+activityNames <- c("Walking", "Walking_Upstairs", "Walking_Downstairs", "Sitting", "Standing", "Laying")
+```
+
+First, I set the location of the folder containing the files as a variable (this is to bypass weird working directory things.)
+
+Then, I import the "features.txt" file as a table, which will be used later to change the column names of the data. I use `paste0` to combine the location and the file name since I don't want a space.
+
+Lastly, I initiate a vector of the activity names, which will be used later.
+
+## Loading in the Data 
+
+This section is also repeated in the script with the "train" files instead.
+
+```{r s2}
+testData <- read.table(paste0(location, "X_test.txt"))
+colnames(testData) <- columnNames$V2
+testNames <- read.table(paste0(location, "y_test.txt"))
+colnames(testNames) <- "Activity"
+testNames$Activity <- cut(testNames$Activity, breaks=6, activityNames)
+testSubject <- read.table(paste0(location, "subject_test.txt"))
+colnames(testSubject) <- "Subject"
+testSubject$Subject <- as.factor(testSubject$Subject)
+```
+
+The first two lines reads the "X_test.txt" file, and change the column names to the right column of the columnNames table loaded in earlier.
+
+The next two reads the "y_test.txt" file, and changes the column name to be "Activity"
+
+The line after that cuts the activity column into 6 breaks, which are then labeled according to the activity list we stored in the first section.
+
+The next two lines read the "subject_test.txt" file, and names the column as "Subject".
+
+The last line of code changes the Subject to a factor (the cut() from earlier already did this for Activity).
+
+Here is the code repeated for the Train files:
+
+```{r s2.5}
+trainData <- read.table(paste0(location, "X_train.txt"))
+colnames(trainData) <- columnNames$V2
+trainNames <- read.table(paste0(location, "y_train.txt"))
+colnames(trainNames) <- "Activity"
+trainNames$Activity <- cut(trainNames$Activity, breaks=6, activityNames)
+trainSubject <- read.table(paste0(location, "subject_train.txt"))
+colnames(trainSubject) <- "Subject"
+trainSubject$Subject <- as.factor(trainSubject$Subject)
+```
+
+## Merging the Datasets
+
+```{r s3}
+testDataset <- cbind(testSubject, testNames, testData)
+trainDataset <- cbind(trainSubject, trainNames, trainData)
+mergedData <- rbind(testDataset, trainDataset)
+```
+
+This section is fairly straightforward, and uses `cbind()` and `rbind()` to merge the 6 tables together into 1.
+
+## New Groupings and Measures 
+
+The last section selects a subset of the data, and finds the mean of all of the variables, for each activity by each subject.
+
+```{r s4}
+library(dplyr)
+neededData <- select(mergedData, c(1:8, 43:48, 83:88, 123:128, 163:168, 203:204, 216:217, 229:230, 242:243, 255:256, 268:273, 347:352, 426:431, 505:506, 518:519, 531:532, 544:545))
+
+averageData <- neededData %>%
+    group_by(Subject, Activity) %>%
+    summarise_all(mean)
+```
+
+This section starts out by loading the `dplyr` package, and selecting the columns that had a mean or sd measurement (which were found using the features.txt file). Since we added two columns to the front, all numbers are 2 higher than the document indicates.
+
+The line that creates the `averageData` table uses the `neededData` table we just made, and groups it by Subject and Activity. It then summarizes all of the columns in the grouped table using mean.
+
+## Summarize Data
+
+We then look at the table using `str()` and `head()`:
+
+```{r s5}
+str(averageData)
+head(averageData)
+```
